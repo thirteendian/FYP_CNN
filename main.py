@@ -4,7 +4,6 @@
 # This file is the main()
 ############################################################
 
-
 import address_config
 from evaluation_F_score import max_score
 from argparse import ArgumentParser

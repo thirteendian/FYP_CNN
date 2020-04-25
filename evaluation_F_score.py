@@ -26,7 +26,7 @@ def max_score(data, argument):
         print('BEST SCORE NO RECORD. GENERATING CACHE TO %s' % cache_address)
         f_score = []
         threshold = []
-        bar = IncrementalBar('PROGRESS', max=10)
+        bar = IncrementalBar('PROGRESS', max=100)
         for i in range(0, 100, 1):
             threshold.append(i / 100)
             address_config.peak_threshold = (threshold[i])
@@ -35,7 +35,7 @@ def max_score(data, argument):
         bar.finish()
         s = [threshold, f_score]
         max_index = s[1].index(max(s[1]))
-        print('\n MAX F-SCORE %.5f APPROACH WHEN PEAK_THRESHOLD=%.3f',
+        print('MAX F-SCORE %.5f APPROACH WHEN PEAK_THRESHOLD=%.3f'%
               (s[1][max_index], s[0][max_index]))
         dump(s, open(cache_address, 'wb'), protocol=2)
 
@@ -45,5 +45,5 @@ def max_score(data, argument):
     plt.ylabel('F-score')
     plt.plot(s[0][max_index],s[1][max_index],'ro')
     plt.axis([0, 1, 0, 1])
-    plt.savefig(join(address_config.figure_dir, 'no-fuzziness.png'))
+    plt.savefig(address_config.figure_dir)
     return

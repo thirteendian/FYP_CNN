@@ -104,6 +104,10 @@ def process_annotation(anns,frame_number):
     # each onset position give 1, nononset give 0
     binary_annotations = np.zeros(frame_number)
     binary_annotations[np.unique(position)] = 1
+
+    #This two line add additional for soft onset
+    binary_annotations[np.unique(position+1)] = 1
+    binary_annotations[np.unique(position-1)] = 1
     return binary_annotations
 
 AudioSample = namedtuple('AudioSample',['pd','ba','ra','an'])

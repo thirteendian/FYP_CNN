@@ -14,11 +14,18 @@ from os.path import join
 import numpy as np
 from glob import glob
 
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from pickle import dump
+
 import tensorflow as tf
 from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from tensorflow.keras.models import load_model
+
+import multi_model
 # Tensorflow 2.1
 # CUDA Toolkit 10.1 update2[Aug 2019]
 # cudnn-10.1
@@ -50,7 +57,7 @@ class ArchSequence(tf.keras.utils.Sequence):
     This class is heritage from Sequence data generator
     """
 
-    def __init__(self, D, batch_size=256,shuffle=True):
+    def __init__(self, D, batch_size=256, shuffle=True):
         """
         D:          List of AudioSequence type
         batch_size: as defined
@@ -61,7 +68,8 @@ class ArchSequence(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         self.n_samples = sum(len(d.ba) for d in self.D)
         self.indices = np.arange(self.n_samples)
-        self.shuffle= shuffle
+        self.shuffle = shuffle
+
     def __len__(self):
         """
         number of batches per epoch
@@ -100,12 +108,12 @@ class ArchSequence(tf.keras.utils.Sequence):
         indexes:        [n:n*batch_size], final loop use min() to stop exceed
 
         """
-        indexes = self.indices[index * self.batch_size:min((index + 1) * self.batch_size,self.n_samples)]
-        samples = [self.get_sample(i) for i in indexes] # [([15],[0/1]),...]
+        indexes = self.indices[index * self.batch_size:min((index + 1) * self.batch_size, self.n_samples)]
+        samples = [self.get_sample(i) for i in indexes]  # [([15],[0/1]),...]
         # intimate of CNN on picture
         pictures = np.array([s[0] for s in samples])
         labels = np.array([s[1] for s in samples])
-        return pictures,labels
+        return pictures, labels
 
     def on_epoch_end(self):
         """
@@ -115,22 +123,30 @@ class ArchSequence(tf.keras.utils.Sequence):
         if self.shuffle == True:
             np.random.shuffle(self.indices)
 
+
 def preparefortrain(data, test_idx, epochs):
+    """
+    validation set is next to current slices
+    training set is all left slices
+    so no current slice is used for training/validation
+    it's left for test and evaluation
+    """
     # define model saved path of each slice
     model_dir = address_config.model_dir
-    slice_dir = join(model_dir,'%02d'%test_idx)
+    slice_dir = join(model_dir, '%02d' % test_idx)
 
-    n=len(data)
+    n = len(data)
     # validation sets always be the next slice
     # when test is the last, val change back to first
     # like the Ring Buffer
-    val_idx=(test_idx+1)% n
-    test= ArchSequence(data[test_idx])
+    val_idx = (test_idx + 1) % n
+
+    test = ArchSequence(data[test_idx])
     val = ArchSequence(data[val_idx])
 
     # train parts are the left 6 slices
-    train_parts=[p for i,p in enumerate(data)
-                if i not in (test_idx,val_idx)]
+    train_parts = [p for i, p in enumerate(data)
+                   if i not in (test_idx, val_idx)]
     assert len(train_parts) == 6
 
     # ArchSequence([list of all remain AudioSequence])
@@ -138,40 +154,39 @@ def preparefortrain(data, test_idx, epochs):
 
     # Generate the Callbacks
     verbose = 1
-    m_loss=ModelCheckpoint(join(slice_dir,'model_{epoch:03d}.h5'),
-                           monitor='loss',
-                           save_best_only=False)
-    m_loss_best=ModelCheckpoint(join(slice_dir,'model_best.h5'),
-                                monitor='loss',
-                                save_best_only=True)
-    m_val_loss=ModelCheckpoint(join(slice_dir,'model_best_val.h5'),
-                               monitor='val_loss',
-                               save_best_only= True)
-    es=EarlyStopping(monitor='val_loss',
-                     min_delta=1e-4,
-                     patience=20,
-                     verbose=verbose)
-    tb = TensorBoard(log_dir=join(slice_dir,'logs'),
+    m_loss = ModelCheckpoint(join(slice_dir, 'model_{epoch:03d}.h5'),
+                             monitor='loss',
+                             save_best_only=False)
+    m_loss_best = ModelCheckpoint(join(slice_dir, 'model_best.h5'),
+                                  monitor='loss',
+                                  save_best_only=True)
+    m_val_loss = ModelCheckpoint(join(slice_dir, 'model_best_val.h5'),
+                                 monitor='val_loss',
+                                 save_best_only=True)
+    es = EarlyStopping(monitor='val_loss',
+                       min_delta=1e-4,
+                       patience=20,
+                       verbose=verbose)
+    tb = TensorBoard(log_dir=join(slice_dir, 'logs'),
                      write_graph=True,
                      write_images=True)
-    callbacks=[m_loss,m_loss_best,m_val_loss,es,tb]
+    callbacks = [m_loss, m_loss_best, m_val_loss, es, tb]
 
     # List of saved model name
-    files=sorted(glob(join(slice_dir,'model_???.h5')))
+    files = sorted(glob(join(slice_dir, 'model_???.h5')))
 
     # If train again with the the last exist train result
     if files:
-        model_file= files[-1]
-        initial_epoch=int(model_file[-6:-3])
-        print('RESUMING TRAINING USING %s'%model_file)
+        model_file = files[-1]
+        initial_epoch = int(model_file[-6:-3])
+        print('RESUMING TRAINING USING %s' % model_file)
         model_for_train = load_model(model_file)
     # If new train
     else:
-        model_for_train = model()
-        initial_epoch=0
+        model_for_train = multi_model.model_NoDense()#model()
+        initial_epoch = 0
 
-
-    model_for_train.fit_generator(train,
+    history = model_for_train.fit(train,
                                   steps_per_epoch=len(train),
                                   initial_epoch=initial_epoch,
                                   epochs=epochs,
@@ -180,6 +195,16 @@ def preparefortrain(data, test_idx, epochs):
                                   validation_steps=len(val),
                                   callbacks=callbacks
                                   )
+    plt.figure(figsize=(8, 5))
+    plt.grid(True)
+    plt.plot(history.history['loss'], label='test_loss')
+    plt.plot(history.history['val_loss'], label='val_loss')
+    plt.title('Loss at Slice' + str(test_idx))
+    plt.ylabel('value')
+    plt.xlabel('epochs')
+    plt.legend(loc="upper left")
+    plt.savefig(join(slice_dir, 'history_cache.png'))
+
 
 def train(data, int_range, epochs):
     # i is the test_index
