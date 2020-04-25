@@ -3,11 +3,17 @@
 # ----------------------------------------------------------
 # This file is the main()
 ############################################################
-############################################################
+
+
+import address_config
+from evaluation_F_score import max_score
 from argparse import ArgumentParser
 from preprocessing import data_access
 from evaluation import evaluate
 from cnn import train
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 # define the ArgumentParser type for split spring of
@@ -19,7 +25,7 @@ def int_range(string):
 
 def main():
     parser = ArgumentParser(description=
-                    'CNN ONSET DETECTION BY YUXUAN YANG')
+                            'CNN ONSET DETECTION BY YUXUAN YANG')
     parser.add_argument(
         '--epochs',
         type=int,
@@ -47,14 +53,14 @@ def main():
     data = data_access()
 
     print(
-    'CREATED DATASET WITH SIZE %s.' % list(map(len, data)))
+        'CREATED DATASET WITH SIZE %s.' % list(map(len, data)))
 
     # select function:
     if arg.evaluate:
-        evaluate(data, arg.evaluate)
+        evaluate(data, arg.evaluate, print_flag=0)
+        thresholdbuffer = address_config.peak_threshold
+        max_score(data, arg.evaluate)
     else:
         train(data, arg.train, arg.epochs)
-
-
 if __name__ == '__main__':
     main()

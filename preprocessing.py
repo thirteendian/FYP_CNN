@@ -6,12 +6,14 @@
 # Second if not processed before then process, if yes then import cache
 #
 ########################################################################################################################
-from os.path import join
-from os import listdir
+
+
 
 import address_config
 from collections import namedtuple
-from os.path import basename,splitext,exists
+
+from os import listdir
+from os.path import join,basename,splitext,exists
 from pickle import load,dump
 import random
 import numpy as np
@@ -180,4 +182,4 @@ def data_access():
 
     return [D[i::8] for i in range(8)] # divide the audio files to 8 parts
 
-D=data_access()
+#D=data_access()

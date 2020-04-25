@@ -19,7 +19,9 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from tensorflow.keras.models import load_model
-#cnDNN v7.6.5 (18 Nov 2019), for CUDA 10.2
+# Tensorflow 2.1
+# CUDA Toolkit 10.1 update2[Aug 2019]
+# cudnn-10.1
 
 
 def model():
@@ -157,7 +159,7 @@ def preparefortrain(data, test_idx, epochs):
     # List of saved model name
     files=sorted(glob(join(slice_dir,'model_???.h5')))
 
-    # If continue train
+    # If train again with the the last exist train result
     if files:
         model_file= files[-1]
         initial_epoch=int(model_file[-6:-3])
@@ -167,6 +169,8 @@ def preparefortrain(data, test_idx, epochs):
     else:
         model_for_train = model()
         initial_epoch=0
+
+
     model_for_train.fit_generator(train,
                                   steps_per_epoch=len(train),
                                   initial_epoch=initial_epoch,
