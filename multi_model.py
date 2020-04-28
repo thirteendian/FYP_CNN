@@ -18,6 +18,7 @@ def model_NoDense():
     m_NoDense.add(MaxPooling2D(pool_size=(1, 3)))
     m_NoDense.add(Dropout(0.5))
     m_NoDense.add(Flatten())
+    m_NoDense.add(Dense(1, activation='sigmoid'))
     optimizer = SGD(lr=0.05, momentum=0.8, clipvalue=5)
     m_NoDense.compile(loss='binary_crossentropy',
                       optimizer=optimizer,
@@ -40,7 +41,6 @@ def model_NineLayers():
                             padding='valid', activation='relu'))
     m_NineLayers.add(MaxPooling2D(pool_size=(1, 3)))
     m_NineLayers.add(Dropout(0.5))
-    m_NineLayers.add(Flatten())
     ###########
     m_NineLayers.add(Conv2D(40, (3, 3), padding='same',
                             data_format='channels_last', activation='relu'))
@@ -65,6 +65,11 @@ def model_NineLayers():
     m_NineLayers.add(BatchNormalization(axis=1))
     m_NineLayers.add(Flatten())
     m_NineLayers.add(Dropout(0.5))
+    m_NineLayers.add(Dense(1, activation='sigmoid'))
+    optimizer = SGD(lr=0.001, momentum=0.7, clipvalue=5)
+    m_NineLayers.compile(loss='binary_crossentropy',
+                      optimizer=optimizer,
+                      metrics=['binary_accuracy'])
     return m_NineLayers
 
 
@@ -82,7 +87,6 @@ def model_FiveLayers():
                             padding='valid', activation='relu'))
     m_FiveLayers.add(MaxPooling2D(pool_size=(1, 3)))
     m_FiveLayers.add(Dropout(0.5))
-    m_FiveLayers.add(Flatten())
     ######
     m_FiveLayers.add(Conv2D(60, (3, 3), padding='same',
                             data_format='channels_last', activation='relu'))
@@ -95,4 +99,9 @@ def model_FiveLayers():
     m_FiveLayers.add(BatchNormalization(axis=1))
     m_FiveLayers.add(Flatten())
     m_FiveLayers.add(Dropout(0.5))
+    m_FiveLayers.add(Dense(1, activation='sigmoid'))
+    optimizer = SGD(lr=0.05, momentum=0.8, clipvalue=5)
+    m_FiveLayers.compile(loss='binary_crossentropy',
+                      optimizer=optimizer,
+                      metrics=['binary_accuracy'])
     return m_FiveLayers

@@ -59,6 +59,8 @@ def main():
         evaluate(data, arg.evaluate, print_flag=0)
         thresholdbuffer = address_config.peak_threshold
         max_score(data, arg.evaluate)
+    # Note that evaluate data is saved in model folder
+    # while the best F_score data is saved in cache folder
     else:
         train(data, arg.train, arg.epochs)
 if __name__ == '__main__':

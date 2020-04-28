@@ -183,7 +183,7 @@ def preparefortrain(data, test_idx, epochs):
         model_for_train = load_model(model_file)
     # If new train
     else:
-        model_for_train = multi_model.model_NoDense()#model()
+        model_for_train = multi_model.model_FiveLayers()#model()
         initial_epoch = 0
 
     history = model_for_train.fit(train,

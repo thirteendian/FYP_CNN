@@ -15,6 +15,7 @@ from progress.bar import IncrementalBar
 
 
 def max_score(data, argument):
+    # Note that following model in located in cache dir
     cache_address = join(address_config.cache_dir, 'cache_Fscore.pkl')
     if exists(cache_address):
         print('BEST SCORE FOUND. LOADING CACHE FROM %s' % cache_address)

@@ -61,7 +61,7 @@ def process_signal(signal,framesize):
 def process_padding(filename):
     """
     read signal and process signal for SINGLE file
-    change format to (n,80,3)
+    change formapltt to (n,80,3)
     add padding of extra 14
     :return: processed file with 14 padding ready for slice single
     D[80,3]
@@ -176,12 +176,12 @@ def cache_access(cache_address, function_preprocess_data):
         dump(data,open(cache_address,'wb'),protocol=2)
         return data
 def data_access():
-    data_address=address_config.data_dir
-    cache_address=address_config.cache_dir
+    data_address = address_config.data_dir
+    cache_address = address_config.cache_dir
     seed = address_config.seed
-    saved_cache=join(cache_address,'cache.pkl')
+    saved_cache= join(cache_address,'cache.pkl')
 
-    function_preprocess_data= lambda:preprocess_data(seed,data_address)
+    function_preprocess_data = lambda:preprocess_data(seed,data_address)
     D = cache_access(saved_cache,function_preprocess_data)
 
     return [D[i::8] for i in range(8)] # divide the audio files to 8 parts
